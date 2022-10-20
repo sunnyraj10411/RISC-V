@@ -235,7 +235,8 @@ m4+definitions(['
    \SV_plus
       m4_op5(00000, I, LOAD)
       m4_op5(00001, I, LOAD_FP)
-      m4_op5(00010, _, CUSTOM_0)
+      //m4_op5(00010, _, CUSTOM_0)
+      m4_op5(00010, R, CUSTOM_0)//change added by sunny
       m4_op5(00011, _, MISC_MEM)
       m4_op5(00100, I, OP_IMM)
       m4_op5(00101, U, AUIPC)
