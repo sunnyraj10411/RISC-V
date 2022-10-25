@@ -61,7 +61,7 @@ m4+definitions(['
       `BOGUS_USE($dmem_rd_data)
 
 \TLV cpu_viz(@_stage)
-   m4_ifelse_block(m4_sp_graph_dangerous, 1, [''], ['
+      m4_ifelse_block(m4_sp_graph_dangerous, 1, [''], ['
    |cpu
       // for pulling default viz signals into CPU
       // and then back into viz
@@ -72,6 +72,12 @@ m4+definitions(['
             $ANY = /top|cpuviz/defaults/xreg<>0$ANY;
          /dmem[15:0]
             $ANY = /top|cpuviz/defaults/dmem<>0$ANY;
+         ///gmemx[X_SIZE-1:0]
+         //   /gmemy[Y_SIZE-1:0]
+         //      $ANY = /top|cpuviz/defaults/gmemx/gmemy<>0$ANY;
+         /smem[M_SIZE-1:0]
+         ///smem[1024:0]
+            $ANY = /top|cpuviz/defaults/smem<>0$ANY;
    // String representations of the instructions for debug.
    \SV_plus
       logic [40*8-1:0] instr_strs [0:M4_NUM_INSTRS];
@@ -145,6 +151,22 @@ m4+definitions(['
                $wr               = 1'b0;
                `BOGUS_USE($value $wr) 
                $dummy[0:0]       = 1'b0;
+               
+            ///gmemx[X_SIZE-1:0]
+            //   /gmemy[Y_SIZE-1:0]
+            //      $value[31:0]      = 32'0;
+            //      $wr               = 1'b0;
+            //      `BOGUS_USE($value $wr)
+            //      $dummy[0:0]       = 1'b0;
+                  
+            ///smem[M_SIZE-1:0]
+            /smem[1024:0]
+               $value[31:0]      = 32'0;
+               $wr               = 1'b0;
+               `BOGUS_USE($value $wr) 
+               $dummy[0:0]       = 1'b0;
+               
+            
             `BOGUS_USE($is_lui $is_auipc $is_jal $is_jalr $is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_lb $is_lh $is_lw $is_lbu $is_lhu $is_sb $is_sh $is_sw)
             `BOGUS_USE($is_addi $is_slti $is_sltiu $is_xori $is_ori $is_andi $is_slli $is_srli $is_srai $is_add $is_sub $is_sll $is_slt $is_sltu $is_xor)
             `BOGUS_USE($is_srl $is_sra $is_or $is_and $is_csrrw $is_csrrs $is_csrrc $is_csrrwi $is_csrrsi $is_csrrci)
@@ -153,6 +175,9 @@ m4+definitions(['
             `BOGUS_USE($is_s_instr $rd_valid $rs1_valid $rs2_valid)
             `BOGUS_USE($rf_wr_en $rf_wr_index $rf_wr_data $rf_rd_en1 $rf_rd_en2 $rf_rd_index1 $rf_rd_index2 $ld_data)
             `BOGUS_USE($imem_rd_en $imem_rd_addr)
+            //`BOGUS_USE($is_g_instr $is_gi_instr $is_gr_instr)
+ 
+            //`BOGUS_USE($imem_rd_en $imem_rd_addr)
             
             $dummy[0:0]          = 1'b0;
       @_stage
@@ -165,6 +190,20 @@ m4+definitions(['
          /dmem[15:0]
             $ANY = /top|cpu/dmem<>0$ANY;
             `BOGUS_USE($dummy)
+            
+         /*
+         /gmemx[X_SIZE-1:0]
+             /gmemy[Y_SIZE-1:0]
+               $ANY = /top|cpu/gmemx/gmemy<>0$ANY;
+               `BOGUS_USE($dummy)
+         */
+         
+         
+         ///smem[M_SIZE-1:0]
+         /smem[1023:0]
+            $ANY = /top|cpu/smem<>0$ANY;
+            `BOGUS_USE($dummy)
+            
 
          // m4_mnemonic_expr is build for WARP-V signal names, which are slightly different. Correct them.
          m4_define(['m4_modified_mnemonic_expr'], ['m4_patsubst(m4_mnemonic_expr, ['_instr'], [''])'])
@@ -224,18 +263,20 @@ m4+definitions(['
          //
          // Register file
          //
-         /xreg[31:0]           
+         /xreg[1:0]
             \viz_alpha
                initEach: function() {
                   let regname = new fabric.Text("Reg File", {
                         top: -20,
                         left: 367,
+                        //left: 200,
                         fontSize: 14,
                         fontFamily: "monospace"
                      });
                   let reg = new fabric.Text("", {
                      top: 18 * this.getIndex(),
                      left: 375,
+                     //left: 200,
                      fontSize: 14,
                      fontFamily: "monospace"
                   });
@@ -251,34 +292,66 @@ m4+definitions(['
                      '$value'.asInt(NaN).toString() + oldValStr);
                   this.getInitObject("reg").setFill(mod ? "blue" : "black");
                }
-         //
-         // DMem
-         //
-         /dmem[15:0]
+         /*      
+         /gmemx[X_SIZE-1:0]         
             \viz_alpha
                initEach: function() {
-                  let memname = new fabric.Text("Mini DMem", {
-                        top: -20,
-                        left: 460,
+                  let s1regname = new fabric.Text("SsRegs File", {
+                        top: -10,
+                        //left: 367,
+                        left: 600,
                         fontSize: 14,
                         fontFamily: "monospace"
                      });
-                  let mem = new fabric.Text("", {
+                  let s1reg = new fabric.Text("", {
                      top: 18 * this.getIndex(),
-                     left: 468,
+                     //left: 375,
+                     left: 600,
                      fontSize: 14,
                      fontFamily: "monospace"
                   });
-                  return {objects: {memname: memname, mem: mem}};
+                  return {objects: {s1regname: s1regname, s1reg: s1reg}};
+               },
+               renderEach: function() {
+                  let mod = '/gmemy[0]$wr'.asBool(false);
+                  let reg = parseInt(this.getIndex());
+                  let regIdent = reg.toString();
+                  let oldValStr = mod ? `(${'/gmemy[0]>>1$value'.asInt(NaN).toString()})` : "";
+                  this.getInitObject("s1reg").setText(
+                     regIdent + ": " + 2);
+                     '/gmemy[0]$value'.asInt(NaN).toString() + oldValStr);
+                  this.getInitObject("s1reg").setFill(mod ? "blue" : "black");
+               }      
+         */
+               
+         ///smem[M_SIZE-1:0]
+         /smem[1023:0]
+            \viz_alpha
+               initEach: function() {
+                  let sregname = new fabric.Text("SReg File", {
+                        top: -20,
+                        //left: 367,
+                        left: 580,
+                        fontSize: 14,
+                        fontFamily: "monospace"
+                     });
+                  let sreg = new fabric.Text("", {
+                     top: 18 * this.getIndex(),
+                     //left: 375,
+                     left: 580,
+                     fontSize: 14,
+                     fontFamily: "monospace"
+                  });
+                  return {objects: {sregname: sregname, sreg: sreg}};
                },
                renderEach: function() {
                   let mod = '$wr'.asBool(false);
-                  let mem = parseInt(this.getIndex());
-                  let memIdent = mem.toString();
+                  let reg = parseInt(this.getIndex());
+                  let regIdent = reg.toString();
                   let oldValStr = mod ? `(${'>>1$value'.asInt(NaN).toString()})` : "";
-                  this.getInitObject("mem").setText(
-                     memIdent + ": " +
+                  this.getInitObject("sreg").setText(
+                     regIdent + ": " +
                      '$value'.asInt(NaN).toString() + oldValStr);
-                  this.getInitObject("mem").setFill(mod ? "blue" : "black");
+                  this.getInitObject("sreg").setFill(mod ? "blue" : "black");
                }
    '])
