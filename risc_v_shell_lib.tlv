@@ -68,7 +68,7 @@ m4+definitions(['
       @0
          $ANY = /top|cpuviz/defaults<>0$ANY;
          `BOGUS_USE($dummy)
-         /xreg[31:0]
+         /xreg[32:0]
             $ANY = /top|cpuviz/defaults/xreg<>0$ANY;
          /dmem[15:0]
             $ANY = /top|cpuviz/defaults/dmem<>0$ANY;
