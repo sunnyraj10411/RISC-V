@@ -135,7 +135,7 @@ m4+definitions(['
             $imem_rd_en          = 1'b0;
             $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = {M4_IMEM_INDEX_CNT{1'b0}};
             
-            /xreg[31:0]
+            /xreg[32:0]
                $value[31:0]      = 32'b0;
                $wr               = 1'b0;
                `BOGUS_USE($value $wr)
