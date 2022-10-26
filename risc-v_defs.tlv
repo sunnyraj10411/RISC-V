@@ -309,6 +309,8 @@ m4+definitions(['
       m4_instr(R, 32, I, 01100, 000, 0000000, ADD)
       m4_instr(R, 32, I, 00010, 000, 0000000, EDGE)
       m4_instr(R, 32, I, 00010, 001, 0000000, REDGE)
+      m4_instr(R, 32, I, 00010, 010, 0000000, GADRW)
+      m4_instr(R, 32, I, 00010, 011, 0000000, GADRR)
       m4_instr(R, 32, I, 01100, 000, 0100000, SUB)
       m4_instr(R, 32, I, 01100, 001, 0000000, SLL)
       m4_instr(R, 32, I, 01100, 010, 0000000, SLT)
