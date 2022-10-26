@@ -33,7 +33,7 @@ m4+definitions(['
 \TLV rf(@_rd, @_wr)
    // Reg File
    @_wr
-      /xreg[31:0]
+      /xreg[32:0]
          $wr = |cpu$rf_wr_en && (|cpu$rf_wr_index != 5'b0) && (|cpu$rf_wr_index == #xreg);
          $value[31:0] = |cpu$reset ?   #xreg           :
                         $wr        ?   |cpu$rf_wr_data :
@@ -158,7 +158,7 @@ m4+definitions(['
       @_stage
          $ANY = /top|cpu<>0$ANY;
          
-         /xreg[31:0]
+         /xreg[32:0]
             $ANY = /top|cpu/xreg<>0$ANY;
             `BOGUS_USE($dummy)
          
@@ -224,7 +224,7 @@ m4+definitions(['
          //
          // Register file
          //
-         /xreg[31:0]           
+         /xreg[32:0]           
             \viz_alpha
                initEach: function() {
                   let regname = new fabric.Text("Reg File", {
